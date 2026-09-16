@@ -26,7 +26,7 @@ Health check: `http://localhost:3000/api/health`.
 }
 ```
 
-Returns `{ "task_id": "..." }`. Both images must already have publicly accessible HTTPS URLs.
+Returns `{ "task_id": "..." }`. Both images can use public HTTPS URLs, or use src_file_id and ref_file_id after direct uploads.
 
 `GET /api/cloth-try-on-status?task_id=...` returns:
 
@@ -52,7 +52,17 @@ In your existing storefront, update the try-on and status URLs to your deployed 
 - `https://YOUR-PROJECT.vercel.app/api/cloth-try-on`
 - `https://YOUR-PROJECT.vercel.app/api/cloth-try-on-status`
 
-The existing storefront's separate image-upload endpoint is still required; this backend accepts image URLs and does not host uploads.
+For the storefront, replace `sections/cloth-try-on.liquid` in your Shopify theme with `shopify/sections/cloth-try-on.liquid` from this repository. This section uses the new `/api/upload` flow and the correct deployed domain. Changing only the old upload setting is insufficient because its old multipart request format has changed.
+
+Set `ALLOWED_ORIGINS` to the exact storefront origin: `https://perfectcorp-cm3c2dvl.myshopify.com` (the last character before `.myshopify.com` is the letter `l`). Redeploy after changing environment variables or pushing these API changes.
+
+`POST /api/upload` accepts JSON metadata for two files, person first and apparel second:
+
+```json
+{"files":[{"content_type":"image/jpeg","file_size":12345},{"content_type":"image/png","file_size":23456}]}
+```
+
+It returns `uploads`, each containing `file_id`, `url`, `method`, and `headers`. Upload each image directly to the returned signed URL with its method and headers, then POST `src_file_id` and `ref_file_id` to `/api/cloth-try-on`. Do not send a task until both uploads succeed. JPEG and PNG files smaller than 10 MB are supported. The API still accepts public image URLs for existing Postman clients. No extra storage credentials are needed. Real browser testing is required to verify provider storage CORS and account permissions.
 `ALLOWED_ORIGINS` controls browser CORS access, not authentication. Configure access protection/rate limits for a public deployment according to your storefront's needs.
 
 ## Verification

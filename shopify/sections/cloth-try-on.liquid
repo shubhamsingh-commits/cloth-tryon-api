@@ -1,0 +1,956 @@
+<section
+  id="cloth-try-on-{{ section.id }}"
+  class="cloth-try-on"
+  data-section-id="{{ section.id }}"
+  data-upload-url="https://cloth-tryon-api.vercel.app/api/upload"
+  data-tryon-url="https://cloth-tryon-api.vercel.app/api/cloth-try-on"
+  data-status-url="https://cloth-tryon-api.vercel.app/api/cloth-try-on-status"
+>
+  <div class="cloth-try-on__container">
+
+    {% if section.settings.heading != blank %}
+      <h2 class="cloth-try-on__heading">
+        {{ section.settings.heading }}
+      </h2>
+    {% endif %}
+
+    {% if section.settings.description != blank %}
+      <div class="cloth-try-on__description">
+        {{ section.settings.description }}
+      </div>
+    {% endif %}
+
+    <div class="cloth-try-on__grid">
+
+      <!-- Customer Photo -->
+      <div class="cloth-try-on__upload-card">
+        <div class="cloth-try-on__step">
+          <span>1</span>
+          <strong>Your Photo</strong>
+        </div>
+
+        <p class="cloth-try-on__hint">
+          Upload a clear photo of yourself.
+        </p>
+
+        <label
+          class="cloth-try-on__dropzone"
+          for="cloth-person-{{ section.id }}"
+          data-dropzone="person"
+        >
+          <input
+            type="file"
+            id="cloth-person-{{ section.id }}"
+            accept="image/jpeg,image/png,image/webp"
+            hidden
+            data-input="person"
+          >
+
+          <div class="cloth-try-on__placeholder" data-placeholder="person">
+            <svg width="42" height="42" viewBox="0 0 24 24" fill="none">
+              <path
+                d="M12 3v12m0-12L8 7m4-4 4 4M5 14v4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4"
+                stroke="currentColor"
+                stroke-width="1.7"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+            <span>Upload your photo</span>
+            <small>JPG, PNG or WEBP</small>
+          </div>
+
+          <img
+            class="cloth-try-on__preview"
+            data-preview="person"
+            alt="Your uploaded photo"
+            hidden
+          >
+        </label>
+
+        <button
+          type="button"
+          class="cloth-try-on__remove"
+          data-remove="person"
+          hidden
+        >
+          Remove photo
+        </button>
+      </div>
+
+
+      <!-- Apparel Photo -->
+      <div class="cloth-try-on__upload-card">
+        <div class="cloth-try-on__step">
+          <span>2</span>
+          <strong>Apparel Photo</strong>
+        </div>
+
+        <p class="cloth-try-on__hint">
+          Upload the clothing you want to try on.
+        </p>
+
+        <label
+          class="cloth-try-on__dropzone"
+          for="cloth-apparel-{{ section.id }}"
+          data-dropzone="apparel"
+        >
+          <input
+            type="file"
+            id="cloth-apparel-{{ section.id }}"
+            accept="image/jpeg,image/png,image/webp"
+            hidden
+            data-input="apparel"
+          >
+
+          <div class="cloth-try-on__placeholder" data-placeholder="apparel">
+            <svg width="42" height="42" viewBox="0 0 24 24" fill="none">
+              <path
+                d="M8 4l4 2 4-2 4 4-3 3v9H7v-9L4 8l4-4Z"
+                stroke="currentColor"
+                stroke-width="1.7"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+            <span>Upload apparel photo</span>
+            <small>JPG, PNG or WEBP</small>
+          </div>
+
+          <img
+            class="cloth-try-on__preview"
+            data-preview="apparel"
+            alt="Uploaded apparel"
+            hidden
+          >
+        </label>
+
+        <button
+          type="button"
+          class="cloth-try-on__remove"
+          data-remove="apparel"
+          hidden
+        >
+          Remove apparel
+        </button>
+      </div>
+
+    </div>
+
+
+    <!-- Generate -->
+    <div class="cloth-try-on__action">
+      <button
+        type="button"
+        class="cloth-try-on__generate"
+        data-generate
+      >
+        <span class="cloth-try-on__button-text">
+          {{ section.settings.button_text }}
+        </span>
+
+        <span
+          class="cloth-try-on__spinner"
+          data-spinner
+          hidden
+        ></span>
+      </button>
+    </div>
+
+
+    <!-- Status -->
+    <div
+      class="cloth-try-on__status"
+      data-status
+      aria-live="polite"
+    ></div>
+
+
+    <!-- Result -->
+    <div
+      class="cloth-try-on__result"
+      data-result
+      hidden
+    >
+      <h3>{{ section.settings.result_heading }}</h3>
+
+      <div class="cloth-try-on__result-image-wrapper">
+        <img
+          class="cloth-try-on__result-image"
+          data-result-image
+          alt="Virtual cloth try-on result"
+        >
+      </div>
+
+      <a
+        class="cloth-try-on__download"
+        data-download
+        href="#"
+        target="_blank"
+        rel="noopener"
+        download
+      >
+        Download Result
+      </a>
+    </div>
+
+  </div>
+</section>
+
+
+<style>
+  #cloth-try-on-{{ section.id }} {
+    --ct-primary: {{ section.settings.primary_color }};
+    --ct-text: #171717;
+    --ct-muted: #707070;
+    --ct-border: #dedede;
+    --ct-bg: #ffffff;
+    --ct-soft: #f7f7f7;
+
+    padding: 50px 20px;
+    background: {{ section.settings.background_color }};
+  }
+
+  #cloth-try-on-{{ section.id }} * {
+    box-sizing: border-box;
+  }
+
+  #cloth-try-on-{{ section.id }} .cloth-try-on__container {
+    max-width: 1000px;
+    margin: 0 auto;
+  }
+
+  #cloth-try-on-{{ section.id }} .cloth-try-on__heading {
+    margin: 0 0 10px;
+    text-align: center;
+    color: var(--ct-text);
+    font-size: 34px;
+    line-height: 1.2;
+  }
+
+  #cloth-try-on-{{ section.id }} .cloth-try-on__description {
+    max-width: 650px;
+    margin: 0 auto 35px;
+    text-align: center;
+    color: var(--ct-muted);
+    line-height: 1.6;
+  }
+
+  #cloth-try-on-{{ section.id }} .cloth-try-on__grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px;
+  }
+
+  #cloth-try-on-{{ section.id }} .cloth-try-on__upload-card {
+    border: 1px solid var(--ct-border);
+    border-radius: 16px;
+    padding: 20px;
+    background: var(--ct-bg);
+  }
+
+  #cloth-try-on-{{ section.id }} .cloth-try-on__step {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 7px;
+    color: var(--ct-text);
+  }
+
+  #cloth-try-on-{{ section.id }} .cloth-try-on__step span {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--ct-primary);
+    color: white;
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  #cloth-try-on-{{ section.id }} .cloth-try-on__hint {
+    margin: 0 0 15px;
+    color: var(--ct-muted);
+    font-size: 14px;
+  }
+
+  #cloth-try-on-{{ section.id }} .cloth-try-on__dropzone {
+    min-height: 300px;
+    border: 2px dashed var(--ct-border);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    cursor: pointer;
+    overflow: hidden;
+    background: var(--ct-soft);
+    transition: all .2s ease;
+  }
+
+  #cloth-try-on-{{ section.id }} .cloth-try-on__dropzone:hover {
+    border-color: var(--ct-primary);
+    background: #fafafa;
+  }
+
+  #cloth-try-on-{{ section.id }} .cloth-try-on__placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 9px;
+    color: var(--ct-muted);
+    padding: 20px;
+  }
+
+  #cloth-try-on-{{ section.id }} .cloth-try-on__placeholder svg {
+    color: var(--ct-primary);
+  }
+
+  #cloth-try-on-{{ section.id }} .cloth-try-on__placeholder span {
+    font-weight: 600;
+    color: var(--ct-text);
+  }
+
+  #cloth-try-on-{{ section.id }} .cloth-try-on__placeholder small {
+    color: var(--ct-muted);
+  }
+
+  #cloth-try-on-{{ section.id }} .cloth-try-on__preview {
+    width: 100%;
+    height: 300px;
+    object-fit: contain;
+    display: block;
+  }
+
+  #cloth-try-on-{{ section.id }} .cloth-try-on__remove {
+    margin-top: 10px;
+    border: 0;
+    background: transparent;
+    color: #c62828;
+    cursor: pointer;
+    font-size: 13px;
+    text-decoration: underline;
+  }
+
+  #cloth-try-on-{{ section.id }} .cloth-try-on__action {
+    display: flex;
+    justify-content: center;
+    margin-top: 28px;
+  }
+
+  #cloth-try-on-{{ section.id }} .cloth-try-on__generate {
+    min-width: 240px;
+    min-height: 52px;
+    padding: 12px 25px;
+    border: 0;
+    border-radius: 999px;
+    background: var(--ct-primary);
+    color: white;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: opacity .2s ease, transform .2s ease;
+  }
+
+  #cloth-try-on-{{ section.id }} .cloth-try-on__generate:hover {
+    transform: translateY(-1px);
+    opacity: .92;
+  }
+
+  #cloth-try-on-{{ section.id }} .cloth-try-on__generate:disabled {
+    opacity: .55;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  #cloth-try-on-{{ section.id }} .cloth-try-on__spinner {
+    width: 19px;
+    height: 19px;
+    border: 2px solid rgba(255,255,255,.4);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: clothTryOnSpin .7s linear infinite;
+  }
+
+  @keyframes clothTryOnSpin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  #cloth-try-on-{{ section.id }} .cloth-try-on__status {
+    margin: 20px auto 0;
+    max-width: 650px;
+    text-align: center;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--ct-muted);
+  }
+
+  #cloth-try-on-{{ section.id }} .cloth-try-on__status.is-error {
+    color: #c62828;
+  }
+
+  #cloth-try-on-{{ section.id }} .cloth-try-on__status.is-success {
+    color: #218838;
+  }
+
+  #cloth-try-on-{{ section.id }} .cloth-try-on__result {
+    max-width: 650px;
+    margin: 45px auto 0;
+    text-align: center;
+  }
+
+  #cloth-try-on-{{ section.id }} .cloth-try-on__result h3 {
+    margin-bottom: 18px;
+    font-size: 24px;
+  }
+
+  #cloth-try-on-{{ section.id }} .cloth-try-on__result-image-wrapper {
+    border-radius: 16px;
+    overflow: hidden;
+    background: var(--ct-soft);
+    border: 1px solid var(--ct-border);
+  }
+
+  #cloth-try-on-{{ section.id }} .cloth-try-on__result-image {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  #cloth-try-on-{{ section.id }} .cloth-try-on__download {
+    display: inline-flex;
+    margin-top: 18px;
+    padding: 11px 20px;
+    border-radius: 999px;
+    background: #111;
+    color: #fff;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  @media (max-width: 700px) {
+    #cloth-try-on-{{ section.id }} {
+      padding: 35px 15px;
+    }
+
+    #cloth-try-on-{{ section.id }} .cloth-try-on__heading {
+      font-size: 27px;
+    }
+
+    #cloth-try-on-{{ section.id }} .cloth-try-on__grid {
+      grid-template-columns: 1fr;
+    }
+
+    #cloth-try-on-{{ section.id }} .cloth-try-on__dropzone,
+    #cloth-try-on-{{ section.id }} .cloth-try-on__preview {
+      min-height: 240px;
+      height: 240px;
+    }
+  }
+</style>
+
+
+<script>
+(function() {
+  const section = document.getElementById(
+    'cloth-try-on-{{ section.id }}'
+  );
+
+  if (!section) return;
+
+  const uploadUrl = section.dataset.uploadUrl;
+  const tryOnUrl = section.dataset.tryonUrl;
+  const statusUrl = section.dataset.statusUrl;
+
+  const state = {
+    person: null,
+    apparel: null,
+    busy: false
+  };
+
+  const personInput = section.querySelector('[data-input="person"]');
+  const apparelInput = section.querySelector('[data-input="apparel"]');
+
+  const personPreview = section.querySelector('[data-preview="person"]');
+  const apparelPreview = section.querySelector('[data-preview="apparel"]');
+
+  const personPlaceholder =
+    section.querySelector('[data-placeholder="person"]');
+
+  const apparelPlaceholder =
+    section.querySelector('[data-placeholder="apparel"]');
+
+  const personRemove =
+    section.querySelector('[data-remove="person"]');
+
+  const apparelRemove =
+    section.querySelector('[data-remove="apparel"]');
+
+  const generateButton =
+    section.querySelector('[data-generate]');
+
+  const buttonText =
+    section.querySelector('.cloth-try-on__button-text');
+
+  const spinner =
+    section.querySelector('[data-spinner]');
+
+  const status =
+    section.querySelector('[data-status]');
+
+  const result =
+    section.querySelector('[data-result]');
+
+  const resultImage =
+    section.querySelector('[data-result-image]');
+
+  const download =
+    section.querySelector('[data-download]');
+
+
+  function setStatus(message, type) {
+    status.textContent = message;
+    status.className = 'cloth-try-on__status';
+
+    if (type === 'error') {
+      status.classList.add('is-error');
+    }
+
+    if (type === 'success') {
+      status.classList.add('is-success');
+    }
+  }
+
+
+  function showPreview(type, file) {
+    const reader = new FileReader();
+
+    reader.onload = function(event) {
+      if (type === 'person') {
+        personPreview.src = event.target.result;
+        personPreview.hidden = false;
+        personPlaceholder.hidden = true;
+        personRemove.hidden = false;
+      }
+
+      if (type === 'apparel') {
+        apparelPreview.src = event.target.result;
+        apparelPreview.hidden = false;
+        apparelPlaceholder.hidden = true;
+        apparelRemove.hidden = false;
+      }
+    };
+
+    reader.readAsDataURL(file);
+  }
+
+
+  function validateFile(file) {
+    if (!file) {
+      return false;
+    }
+
+    const allowedTypes = [
+      'image/jpeg',
+      'image/png',
+      'image/webp'
+    ];
+
+    if (!allowedTypes.includes(file.type)) {
+      setStatus(
+        'Please upload a JPG, PNG or WEBP image.',
+        'error'
+      );
+
+      return false;
+    }
+
+    // 10 MB limit
+    if (file.size > 10 * 1024 * 1024) {
+      setStatus(
+        'Image size must be less than 10 MB.',
+        'error'
+      );
+
+      return false;
+    }
+
+    return true;
+  }
+
+  personInput.addEventListener('change', function(event) {
+    const file = event.target.files[0];
+
+    if (!validateFile(file)) {
+      return;
+    }
+
+    state.person = file;
+    showPreview('person', file);
+    setStatus('');
+  });
+
+  apparelInput.addEventListener('change', function(event) {
+    const file = event.target.files[0];
+
+    if (!validateFile(file)) {
+      return;
+    }
+
+    state.apparel = file;
+    showPreview('apparel', file);
+    setStatus('');
+  });
+
+
+  personRemove.addEventListener('click', function() {
+    state.person = null;
+    personInput.value = '';
+    personPreview.src = '';
+    personPreview.hidden = true;
+    personPlaceholder.hidden = false;
+    personRemove.hidden = true;
+  });
+
+  apparelRemove.addEventListener('click', function() {
+    state.apparel = null;
+    apparelInput.value = '';
+    apparelPreview.src = '';
+    apparelPreview.hidden = true;
+    apparelPlaceholder.hidden = false;
+    apparelRemove.hidden = true;
+  });
+
+  function setLoading(loading) {
+    state.busy = loading;
+    generateButton.disabled = loading;
+
+    if (loading) {
+      spinner.hidden = false;
+      buttonText.textContent = 'Generating...';
+    } else {
+      spinner.hidden = true;
+      buttonText.textContent =
+        '{{ section.settings.button_text | escape }}';
+    }
+  }
+
+
+  
+  async function uploadImages() {
+    const images = [state.person, state.apparel];
+    for (const file of images) {
+      if (!file || !['image/jpeg', 'image/png'].includes(file.type)) {
+        throw new Error('Please select JPEG or PNG images.');
+      }
+      if (!file.size || file.size >= 10000000) {
+        throw new Error('Each image must be smaller than 10 MB.');
+      }
+    }
+    const response = await fetch(uploadUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ files: images.map(file => ({
+        content_type: file.type, file_size: file.size
+      })) }),
+      signal: AbortSignal.timeout(30000)
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || 'Unable to prepare image upload.');
+    if (!Array.isArray(data.uploads) || data.uploads.length !== 2) {
+      throw new Error('Upload server returned invalid instructions.');
+    }
+    await Promise.all(data.uploads.map(async (upload, index) => {
+      const result = await fetch(upload.url, {
+        method: upload.method, headers: upload.headers, body: images[index],
+        credentials: 'omit', signal: AbortSignal.timeout(120000)
+      });
+      if (!result.ok) throw new Error('Image upload failed. Please retry.');
+    }));
+    return { src_file_id: data.uploads[0].file_id, ref_file_id: data.uploads[1].file_id };
+  }
+
+
+  
+  async function createTryOn(srcFileId, refFileId) {
+    const response = await fetch(tryOnUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        src_file_id: srcFileId,
+        ref_file_id: refFileId
+      })
+    });
+
+    if (!response.ok) {
+      let message = 'Try-on generation failed.';
+
+      try {
+        const errorData = await response.json();
+
+        if (errorData.message) {
+          message = errorData.message;
+        }
+
+        if (errorData.error) {
+          message = errorData.error;
+        }
+      } catch (e) {}
+
+      throw new Error(message);
+    }
+
+    return response.json();
+  }
+
+
+  
+  async function pollStatus(taskId) {
+    const maxAttempts = 120;
+    const delay = 3000;
+
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+
+      const response = await fetch(
+        statusUrl + '?task_id=' + encodeURIComponent(taskId),
+        {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json'
+          }
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(
+          'Unable to check generation status.'
+        );
+      }
+
+      const data = await response.json();
+
+      
+      const taskStatus =
+        data.status ||
+        data.state ||
+        data.task_status;
+
+      const outputUrl =
+        data.output_url ||
+        data.result_url ||
+        data.image_url ||
+        data.url;
+
+      if (
+        outputUrl &&
+        (
+          taskStatus === 'completed' ||
+          taskStatus === 'success' ||
+          taskStatus === 'succeeded' ||
+          !taskStatus
+        )
+      ) {
+        return outputUrl;
+      }
+
+      if (
+        taskStatus === 'failed' ||
+        taskStatus === 'error' ||
+        taskStatus === 'cancelled'
+      ) {
+        throw new Error(
+          data.message ||
+          data.error ||
+          'Try-on generation failed.'
+        );
+      }
+
+      const progress =
+        data.progress !== undefined
+          ? data.progress
+          : null;
+
+      if (progress !== null) {
+        setStatus(
+          'Creating your virtual try-on... ' +
+          progress +
+          '%'
+        );
+      } else {
+        setStatus(
+          'Creating your virtual try-on...'
+        );
+      }
+
+      await new Promise(function(resolve) {
+        setTimeout(resolve, delay);
+      });
+    }
+
+    throw new Error(
+      'Generation is taking too long. Please try again later.'
+    );
+  }
+
+
+  generateButton.addEventListener('click', async function() {
+
+    if (state.busy) {
+      return;
+    }
+
+    if (!state.person) {
+      setStatus(
+        'Please upload your photo first.',
+        'error'
+      );
+      return;
+    }
+
+    if (!state.apparel) {
+      setStatus(
+        'Please upload an apparel photo.',
+        'error'
+      );
+      return;
+    }
+
+    result.hidden = true;
+    setLoading(true);
+
+    try {
+
+      
+      setStatus(
+        'Uploading your images...'
+      );
+
+      const uploaded = await uploadImages();
+
+
+      
+      setStatus(
+        'Starting virtual try-on...'
+      );
+
+      const task = await createTryOn(
+        uploaded.src_file_id,
+        uploaded.ref_file_id
+      );
+
+
+      
+      const taskId =
+        task.task_id ||
+        task.id;
+
+      if (!taskId) {
+        throw new Error(
+          'Try-on API did not return a task ID.'
+        );
+      }
+
+
+      
+      const outputUrl = await pollStatus(taskId);
+
+
+      
+      resultImage.src = outputUrl;
+      download.href = outputUrl;
+
+      result.hidden = false;
+
+      setStatus(
+        'Your virtual try-on is ready!',
+        'success'
+      );
+
+      result.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center'
+      });
+
+    } catch (error) {
+
+      console.error(
+        'Cloth try-on error:',
+        error
+      );
+
+      setStatus(
+        error.message ||
+        'Something went wrong. Please try again.',
+        'error'
+      );
+
+    } finally {
+      setLoading(false);
+    }
+  });
+
+})();
+</script>
+
+
+{% schema %}
+{
+  "name": "Cloth Try-On",
+  "tag": "section",
+  "class": "section-cloth-try-on",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Virtual Try-On"
+    },
+    {
+      "type": "richtext",
+      "id": "description",
+      "label": "Description",
+      "default": "<p>Upload your photo and the apparel you want to try on.</p>"
+    },
+    {
+      "type": "text",
+      "id": "button_text",
+      "label": "Button Text",
+      "default": "Try It On"
+    },
+    {
+      "type": "text",
+      "id": "result_heading",
+      "label": "Result Heading",
+      "default": "Your Virtual Try-On"
+    },
+    {
+      "type": "color",
+      "id": "primary_color",
+      "label": "Primary Color",
+      "default": "#111111"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Background Color",
+      "default": "#ffffff"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Cloth Try-On"
+    }
+  ]
+}
+{% endschema %}

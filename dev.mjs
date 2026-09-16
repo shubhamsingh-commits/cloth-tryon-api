@@ -3,9 +3,13 @@ import { pathToFileURL } from 'node:url';
 import tryOn from './api/cloth-try-on.js';
 import status from './api/cloth-try-on-status.js';
 import health from './api/health.js';
+import upload from './api/upload.js';
+import upload from './api/upload.js';
 import { send } from './lib/http.js';
 
 const routes = {
+  '/api/upload': upload,
+  '/api/upload': upload,
   '/api/cloth-try-on': tryOn,
   '/api/cloth-try-on-status': status,
   '/api/health': health

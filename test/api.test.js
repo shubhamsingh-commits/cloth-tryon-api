@@ -8,13 +8,18 @@ test('HTTP routes validate requests and preserve the storefront contract', async
   const originalKey = process.env.PERFECT_CORP_API_KEY;
   const originalOrigins = process.env.ALLOWED_ORIGINS;
   process.env.PERFECT_CORP_API_KEY = 'test-key';
-  process.env.ALLOWED_ORIGINS = 'https://store.example';
+  process.env.ALLOWED_ORIGINS = 'https://store.example/';
   const upstreamCalls = [];
   let providerError = false;
   globalThis.fetch = async (url, options) => {
     if (!String(url).startsWith('https://yce-api-01.makeupar.com/')) return originalFetch(url, options);
     upstreamCalls.push({ url, options });
     if (providerError) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    if (String(url).endsWith('/file')) return Response.json({ status: 200, data: { files: [0, 1].map(index => ({
+      file_id: `file/${index}+id`, requests: [{ method: 'PUT', url: `https://storage.example/${index}`, headers: {
+        'Content-Type': 'image/jpg', 'Content-Length': '100', Authorization: 'must-not-leak'
+      } }]
+    })) } });
     return Response.json({ status: 200, data: options.method === 'POST'
       ? { task_id: 'task-123' }
       : { task_status: 'success', results: { url: 'https://images.example/result.jpg' }, error: null } });
@@ -53,6 +58,25 @@ test('HTTP routes validate requests and preserve the storefront contract', async
   assert.equal(upstreamCalls[0].options.headers.Authorization, 'Bearer test-key');
   const result = await fetch(base + '/api/cloth-try-on-status?task_id=task-123');
   assert.deepEqual(await result.json(), { task_id: 'task-123', status: 'success', output_url: 'https://images.example/result.jpg', error: null });
+  const upload = body => fetch(base + '/api/upload', {
+    method: 'POST', headers: { 'Content-Type': 'application/json', Origin: 'https://store.example' }, body: JSON.stringify(body)
+  });
+  const metadata = { content_type: 'image/jpeg', file_size: 100 };
+  assert.equal((await upload({ files: [metadata] })).status, 400);
+  assert.equal((await upload({ files: [metadata, { ...metadata, file_size: 10000000 }] })).status, 400);
+  assert.equal((await upload({ files: [metadata, { ...metadata, content_type: 'text/html' }] })).status, 400);
+  const uploaded = await upload({ files: [metadata, metadata] });
+  assert.equal(uploaded.status, 200);
+  assert.equal(uploaded.headers.get('access-control-allow-origin'), 'https://store.example');
+  const instructions = await uploaded.json();
+  assert.equal(instructions.uploads.length, 2);
+  assert.deepEqual(instructions.uploads[0].headers, { 'Content-Type': 'image/jpg' });
+  const ids = { src_file_id: instructions.uploads[0].file_id, ref_file_id: instructions.uploads[1].file_id };
+  assert.equal((await post(ids)).status, 200);
+  assert.deepEqual(JSON.parse(upstreamCalls.at(-1).options.body), { ...ids, garment_category: 'auto' });
+  assert.equal((await post({ ...ids, src_file_url: input.src_file_url })).status, 400);
+  const uploadPreflight = await fetch(base + '/api/upload', { method: 'OPTIONS', headers: { Origin: 'https://store.example' } });
+  assert.equal(uploadPreflight.status, 204);
   providerError = true;
   assert.equal((await post(input)).status, 502);
   delete process.env.PERFECT_CORP_API_KEY;
